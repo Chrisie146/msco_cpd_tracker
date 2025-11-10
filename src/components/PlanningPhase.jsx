@@ -75,7 +75,17 @@ ${allCompetencies.join(', ')}
 
 Respond with ONLY a JSON array of competency names, no explanation. Example: ["Analytical thinking", "Leadership skills", "Communication skills"]`;
 
-      const response = await fetch('http://localhost:3001/api/chat', {
+      // Determine API endpoint based on environment
+      let apiUrl;
+      if (window.location.hostname === 'localhost') {
+        apiUrl = 'http://localhost:3001/api/chat';
+      } else if (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebase')) {
+        apiUrl = 'https://us-central1-msco-cpd-tracker.cloudfunctions.net/chat';
+      } else {
+        throw new Error('Unable to determine API endpoint');
+      }
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -130,7 +140,17 @@ Please enhance this description by:
 
 Respond with ONLY the enhanced text, no explanations or labels.`;
 
-      const response = await fetch('http://localhost:3001/api/chat', {
+      // Determine API endpoint based on environment
+      let apiUrl;
+      if (window.location.hostname === 'localhost') {
+        apiUrl = 'http://localhost:3001/api/chat';
+      } else if (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebase')) {
+        apiUrl = 'https://us-central1-msco-cpd-tracker.cloudfunctions.net/chat';
+      } else {
+        throw new Error('Unable to determine API endpoint');
+      }
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -190,7 +210,17 @@ ${allCompetencies.join(', ')}
 
 Respond with ONLY a JSON array of competency names, no explanation. Example: ["Analytical thinking", "Leadership skills", "Communication skills", "Strategic thinking", "Financial management"]`;
 
-      const response = await fetch('http://localhost:3001/api/chat', {
+      // Determine API endpoint based on environment
+      let apiUrl;
+      if (window.location.hostname === 'localhost') {
+        apiUrl = 'http://localhost:3001/api/chat';
+      } else if (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebase')) {
+        apiUrl = 'https://us-central1-msco-cpd-tracker.cloudfunctions.net/chat';
+      } else {
+        throw new Error('Unable to determine API endpoint');
+      }
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

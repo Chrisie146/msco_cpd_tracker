@@ -166,3 +166,45 @@ Format the response with clear sections.`;
     }
   });
 });
+
+// General chat endpoint for AI assistance
+exports.chat = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    try {
+      if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+      }
+
+      const { message } = req.body;
+
+      if (!message) {
+        return res.status(400).json({ error: 'Message is required' });
+      }
+
+      const response = await client.messages.create({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        messages: [
+          {
+            role: 'user',
+            content: message
+          }
+        ],
+      });
+
+      const responseText = response.content[0].type === 'text' ? response.content[0].text : '';
+
+      res.json({
+        success: true,
+        response: responseText
+      });
+
+    } catch (error) {
+      console.error('Error in chat endpoint:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to process chat request'
+      });
+    }
+  });
+});
