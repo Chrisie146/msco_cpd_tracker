@@ -107,13 +107,13 @@ const ReflectionPhase = ({ completedActivities, setCompletedActivities, learning
     if (!formData.date) {
       newErrors.date = 'Date is required';
     }
-    if (!formData.activity.trim()) {
+    if (!formData.activity || !formData.activity.trim()) {
       newErrors.activity = 'Activity name is required';
     }
-    if (!formData.developmentArea.trim()) {
+    if (!formData.developmentArea || !formData.developmentArea.trim()) {
       newErrors.developmentArea = 'Development area is required';
     }
-    if (!formData.outcome.trim()) {
+    if (!formData.outcome || !formData.outcome.trim()) {
       newErrors.outcome = 'Outcome/reflection is required';
     }
 
@@ -178,7 +178,7 @@ const ReflectionPhase = ({ completedActivities, setCompletedActivities, learning
 
   // AI Helper Functions
   const handleAIGenerateReflection = async () => {
-    if (!reflectionData.reflection.trim() && !selectedActivity?.outcome) {
+    if ((!reflectionData.reflection || !reflectionData.reflection.trim()) && !selectedActivity?.outcome) {
       setErrors({ ...errors, reflection: 'Please add some notes or initial thoughts first' });
       return;
     }
@@ -317,7 +317,7 @@ Format as a concise paragraph (3-4 sentences). Respond with ONLY the suggestions
   };
 
   const handleSaveReflection = () => {
-    if (!reflectionData.reflection.trim()) {
+    if (!reflectionData.reflection || !reflectionData.reflection.trim()) {
       setErrors({ ...errors, reflection: 'Reflection is required' });
       return;
     }
