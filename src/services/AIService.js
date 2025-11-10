@@ -17,11 +17,16 @@ class AIService {
 
       console.log(`Uploading file: ${fileName}, type: ${fileType}, mime: ${mimeType}, base64 length: ${base64Content.length}`);
 
-      // Check if backend API is available (localhost for dev, skip for GitHub Pages)
-      const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3001/api/analyze-document' : null;
-      
-      if (!apiUrl) {
-        throw new Error('AI features are not available on this hosting platform. Please run the app locally with "npm run dev:all" to enable AI document analysis. For GitHub Pages hosting, AI features are disabled.');
+      // Determine API endpoint based on environment
+      let apiUrl;
+      if (window.location.hostname === 'localhost') {
+        // Local development
+        apiUrl = 'http://localhost:3001/api/analyze-document';
+      } else if (window.location.hostname === 'localhost' || window.location.hostname.includes('firebase')) {
+        // Firebase hosting - use Cloud Function
+        apiUrl = `https://us-central1-${import.meta.env.VITE_FIREBASE_PROJECT_ID}.cloudfunctions.net/analyzeDocument`;
+      } else {
+        throw new Error('AI features are not configured for this deployment. Please use Firebase hosting or run locally with "npm run dev:all".');
       }
 
       const response = await fetch(apiUrl, {
