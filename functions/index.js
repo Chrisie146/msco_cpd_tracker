@@ -2,12 +2,11 @@ const functions = require('firebase-functions');
 const cors = require('cors');
 const Anthropic = require('@anthropic-ai/sdk');
 
+const corsHandler = cors({ origin: true });
+
 const client = new Anthropic({
   apiKey: process.env.VITE_CLAUDE_API_KEY,
 });
-
-// Enable CORS for all requests
-const corsHandler = cors({ origin: true });
 
 // Health check endpoint
 exports.health = functions.https.onRequest((req, res) => {

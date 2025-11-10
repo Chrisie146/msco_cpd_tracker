@@ -22,9 +22,9 @@ class AIService {
       if (window.location.hostname === 'localhost') {
         // Local development
         apiUrl = 'http://localhost:3001/api/analyze-document';
-      } else if (window.location.hostname === 'localhost' || window.location.hostname.includes('firebase')) {
+      } else if (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebase')) {
         // Firebase hosting - use Cloud Function
-        apiUrl = `https://us-central1-${import.meta.env.VITE_FIREBASE_PROJECT_ID}.cloudfunctions.net/analyzeDocument`;
+        apiUrl = `https://us-central1-msco-cpd-tracker.cloudfunctions.net/analyzeDocument`;
       } else {
         throw new Error('AI features are not configured for this deployment. Please use Firebase hosting or run locally with "npm run dev:all".');
       }
