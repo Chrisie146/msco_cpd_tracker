@@ -3,8 +3,8 @@ import { Plus, Edit2, Trash2, Target, Briefcase, Calendar, ChevronDown, Sparkles
 import { FieldError } from './ErrorDisplay';
 import AIService from '../services/AIService';
 
-const PlanningPhase = ({ careerData, setCareerData, learningNeeds, setLearningNeeds }) => {
-  console.log('PlanningPhase rendering...', { careerData, learningNeeds });
+const PlanningPhase = ({ careerData, setCareerData, learningNeeds, setLearningNeeds, completedActivities }) => {
+  console.log('PlanningPhase rendering...', { careerData, learningNeeds, completedActivities });
   
   // SAICA Competencies Framework
   const competenciesByCategory = {
@@ -53,6 +53,7 @@ const PlanningPhase = ({ careerData, setCareerData, learningNeeds, setLearningNe
   const [aiSuggestingCompetencies, setAiSuggestingCompetencies] = useState(false);
   const [showCompetencyPicker, setShowCompetencyPicker] = useState(false);
   const [aiEnhancingPrompt, setAiEnhancingPrompt] = useState(false);
+  const [aiSuggestingRoleCompetencies, setAiSuggestingRoleCompetencies] = useState(false);
 
   const handleCareerDataChange = (field, value) => {
     setCareerData({ ...careerData, [field]: value });
@@ -156,6 +157,65 @@ Respond with ONLY the enhanced text, no explanations or labels.`;
       setErrors({ ...errors, needPrompt: 'AI enhancement failed. Please try again or edit manually.' });
     } finally {
       setAiEnhancingPrompt(false);
+    }
+  };
+
+  const handleAISuggestRoleCompetencies = async () => {
+    if (!careerData.currentPosition || !careerData.currentPosition.trim()) {
+      setErrors({ ...errors, competenciesExpected: 'Please enter your current position/role first' });
+      return;
+    }
+
+    setAiSuggestingRoleCompetencies(true);
+    setErrors({});
+
+    try {
+      const prompt = `You are a SAICA competency expert. Based on the following career information, suggest 5-8 key competencies from the SAICA competencies framework that would typically be expected for this role.
+
+Career Information:
+- Current Position/Role: ${careerData.currentPosition || 'Not specified'}
+- Years in Role: ${careerData.yearsInRole || 'Not specified'}
+- Industry Focus: ${careerData.industryFocus || 'Not specified'}
+- Career Path/Aspirations: ${careerData.careerPath || 'Not specified'}
+- Organization Type: ${careerData.organizationType || 'Not specified'}
+
+Analyze this role and suggest the most relevant competencies that would be expected for someone in this position. Consider:
+1. The technical competencies needed for this specific role
+2. The professional skills required at this career level
+3. The business competencies relevant to this industry/sector
+4. Enabling competencies for career progression
+
+Available SAICA competencies:
+${allCompetencies.join(', ')}
+
+Respond with ONLY a JSON array of competency names, no explanation. Example: ["Analytical thinking", "Leadership skills", "Communication skills", "Strategic thinking", "Financial management"]`;
+
+      const response = await fetch('http://localhost:3001/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: prompt
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('AI suggestion failed');
+      }
+
+      const data = await response.json();
+      const suggestedCompetencies = JSON.parse(data.response);
+      
+      // Update selected competencies
+      setSelectedCompetencies(suggestedCompetencies);
+      handleCareerDataChange('competenciesExpected', suggestedCompetencies);
+
+    } catch (error) {
+      console.error('AI role competency suggestion error:', error);
+      setErrors({ ...errors, competenciesExpected: 'AI suggestion failed. Please select competencies manually or check AI configuration.' });
+    } finally {
+      setAiSuggestingRoleCompetencies(false);
     }
   };
 
@@ -275,9 +335,24 @@ Respond with ONLY the enhanced text, no explanations or labels.`;
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Competencies Expected in This Role
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-slate-700">
+                    Competencies Expected in This Role
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleAISuggestRoleCompetencies}
+                    disabled={aiSuggestingRoleCompetencies || !careerData.currentPosition}
+                    className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-slate-400 disabled:cursor-not-allowed"
+                  >
+                    {aiSuggestingRoleCompetencies ? (
+                      <Loader size={14} className="animate-spin" />
+                    ) : (
+                      <Sparkles size={14} />
+                    )}
+                    AI Suggest for Role
+                  </button>
+                </div>
                 <div className="relative">
                   <button
                     type="button"

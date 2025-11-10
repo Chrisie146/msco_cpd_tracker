@@ -82,6 +82,7 @@ const CPDTracker = () => {
             setCareerData={setCareerData}
             learningNeeds={learningNeeds}
             setLearningNeeds={setLearningNeeds}
+            completedActivities={completedActivities}
           />
         );
       case 'action':
