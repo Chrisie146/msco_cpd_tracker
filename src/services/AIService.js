@@ -17,7 +17,14 @@ class AIService {
 
       console.log(`Uploading file: ${fileName}, type: ${fileType}, mime: ${mimeType}, base64 length: ${base64Content.length}`);
 
-      const response = await fetch('http://localhost:3001/api/analyze-document', {
+      // Check if backend API is available (localhost for dev, skip for GitHub Pages)
+      const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3001/api/analyze-document' : null;
+      
+      if (!apiUrl) {
+        throw new Error('AI features are not available on this hosting platform. Please run the app locally with "npm run dev:all" to enable AI document analysis. For GitHub Pages hosting, AI features are disabled.');
+      }
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
