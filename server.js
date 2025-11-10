@@ -145,14 +145,17 @@ app.post('/api/validate-compliance', async (req, res) => {
 // General chat endpoint for AI assistance
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message: userMessage } = req.body;
+    const { message: userMessage, model } = req.body;
 
     if (!userMessage) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
+    // Default to Haiku for cost savings, allow override
+    const selectedModel = model || 'claude-3-5-haiku-20241022';
+
     const message = await client.messages.create({
-      model: 'claude-opus-4-1',
+      model: selectedModel,
       max_tokens: 1024,
       messages: [
         {

@@ -93,7 +93,8 @@ Respond with ONLY a JSON array of competency names, no explanation. Example: ["A
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          message: prompt
+          message: prompt,
+          model: 'claude-sonnet-4-20250514' // Use Sonnet for competency analysis (needs better reasoning)
         })
       });
 
@@ -159,6 +160,7 @@ Respond with ONLY the enhanced text, no explanations or labels.`;
         },
         body: JSON.stringify({
           message: enhancementPrompt
+          // Uses default Haiku model for cost savings (simple text enhancement)
         })
       });
 
@@ -228,7 +230,8 @@ Respond with ONLY a JSON array of competency names, no explanation. Example: ["A
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          message: prompt
+          message: prompt,
+          model: 'claude-sonnet-4-20250514' // Use Sonnet for competency analysis (needs better reasoning)
         })
       });
 
@@ -294,6 +297,7 @@ Respond with ONLY the enhanced goal statement, no explanations or labels.`;
         },
         body: JSON.stringify({
           message: prompt
+          // Uses default Haiku model for cost savings (simple goal text enhancement)
         })
       });
 
@@ -356,6 +360,7 @@ Respond with ONLY the enhanced goal statement, no explanations or labels.`;
         },
         body: JSON.stringify({
           message: prompt
+          // Uses default Haiku model for cost savings (simple goal text enhancement)
         })
       });
 

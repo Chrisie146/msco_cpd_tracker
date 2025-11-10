@@ -175,14 +175,17 @@ exports.chat = functions.https.onRequest((req, res) => {
         return res.status(405).json({ error: 'Method not allowed' });
       }
 
-      const { message } = req.body;
+      const { message, model } = req.body;
 
       if (!message) {
         return res.status(400).json({ error: 'Message is required' });
       }
 
+      // Default to Haiku for cost savings, allow override
+      const selectedModel = model || 'claude-3-5-haiku-20241022';
+
       const response = await client.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: selectedModel,
         max_tokens: 1024,
         messages: [
           {
