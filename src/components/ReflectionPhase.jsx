@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, Upload, File, Eye, Calendar, BookOpen, CheckCircle, Download, Sparkles, Loader, Save, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Upload, File, Eye, Calendar, BookOpen, CheckCircle, Download, Sparkles, Loader, Save, X, Scan } from 'lucide-react';
 import { FieldError } from './ErrorDisplay';
 import FileService from '../services/FileService';
+import AIService from '../services/AIService';
 
 const ReflectionPhase = ({ completedActivities, setCompletedActivities, learningNeeds }) => {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -27,6 +28,7 @@ const ReflectionPhase = ({ completedActivities, setCompletedActivities, learning
   });
   const [aiGeneratingReflection, setAiGeneratingReflection] = useState(false);
   const [aiGeneratingFuture, setAiGeneratingFuture] = useState(false);
+  const [analyzingFileIndex, setAnalyzingFileIndex] = useState(null);
 
   const activityTypes = {
     formal: 'Formal Learning',
@@ -57,6 +59,45 @@ const ReflectionPhase = ({ completedActivities, setCompletedActivities, learning
       ...formData,
       attachments: formData.attachments.filter((_, i) => i !== index)
     });
+  };
+
+  const handleAnalyzeImage = async (fileIndex) => {
+    const file = formData.attachments[fileIndex];
+    
+    // Check if it's an image
+    if (!file.type.startsWith('image/')) {
+      setErrors({ ...errors, attachments: 'Only images can be analyzed. PDFs are uploaded as evidence only.' });
+      return;
+    }
+
+    setAnalyzingFileIndex(fileIndex);
+    setErrors({});
+
+    try {
+      // Convert dataUrl back to file for analysis
+      const response = await fetch(file.dataUrl);
+      const blob = await response.blob();
+      const imageFile = new File([blob], file.name, { type: file.type });
+
+      const analysisData = await AIService.analyzeDocument(imageFile, file.type);
+      
+      // Auto-fill form with analyzed data
+      setFormData({
+        ...formData,
+        activity: analysisData.activityType || formData.activity,
+        provider: analysisData.provider || formData.provider,
+        description: analysisData.description || formData.description,
+        cpdHours: analysisData.cpdHours?.toString() || formData.cpdHours,
+        developmentArea: analysisData.competencyAreas?.[0] || formData.developmentArea,
+        outcome: analysisData.description || formData.outcome
+      });
+
+    } catch (error) {
+      console.error('Image analysis error:', error);
+      setErrors({ ...errors, attachments: `Analysis failed: ${error.message}. You can still upload the file as evidence.` });
+    } finally {
+      setAnalyzingFileIndex(null);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -186,6 +227,11 @@ Respond with ONLY the reflection text, no labels or explanations.`;
       }
 
       const data = await response.json();
+      
+      if (!data.response || typeof data.response !== 'string') {
+        throw new Error('Invalid AI response format');
+      }
+      
       setReflectionData({ 
         ...reflectionData, 
         reflection: data.response.trim()
@@ -480,6 +526,9 @@ Format as a concise paragraph (3-4 sentences). Respond with ONLY the suggestions
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Upload Evidence (Certificates, Attendance Proof, etc.)
                 </label>
+                <p className="text-xs text-slate-600 mb-2">
+                  Upload images (JPG, PNG) or PDFs. Images can be analyzed with AI to auto-fill the form.
+                </p>
                 <div className="border-2 border-dashed border-slate-300 rounded-lg p-4">
                   <input
                     type="file"
@@ -487,7 +536,7 @@ Format as a concise paragraph (3-4 sentences). Respond with ONLY the suggestions
                     onChange={handleFileUpload}
                     className="hidden"
                     id="file-upload"
-                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                    accept=".pdf,.jpg,.jpeg,.png,.gif,.webp"
                   />
                   <label
                     htmlFor="file-upload"
@@ -495,7 +544,7 @@ Format as a concise paragraph (3-4 sentences). Respond with ONLY the suggestions
                   >
                     <Upload className="text-slate-400 mb-2" size={32} />
                     <span className="text-sm text-slate-600">Click to upload or drag and drop</span>
-                    <span className="text-xs text-slate-500 mt-1">PDF, JPG, PNG, DOC (max 10MB)</span>
+                    <span className="text-xs text-slate-500 mt-1">Images: JPG, PNG, GIF, WebP | Documents: PDF</span>
                   </label>
                 </div>
 
@@ -503,18 +552,50 @@ Format as a concise paragraph (3-4 sentences). Respond with ONLY the suggestions
                   <div className="mt-3 space-y-2">
                     {formData.attachments.map((file, index) => (
                       <div key={index} className="flex items-center justify-between bg-white p-2 rounded border">
-                        <div className="flex items-center gap-2">
-                          <File size={16} className="text-purple-600" />
-                          <span className="text-sm">{file.name}</span>
-                          <span className="text-xs text-slate-500">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <File size={16} className="text-purple-600 shrink-0" />
+                          <span className="text-sm truncate">{file.name}</span>
+                          <span className="text-xs text-slate-500 shrink-0">
                             ({(file.size / 1024).toFixed(1)} KB)
                           </span>
+                          {file.type.startsWith('image/') && (
+                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded shrink-0">
+                              Image
+                            </span>
+                          )}
+                          {file.type === 'application/pdf' && (
+                            <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded shrink-0">
+                              PDF
+                            </span>
+                          )}
                         </div>
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 shrink-0">
+                          {file.type.startsWith('image/') && (
+                            <button
+                              type="button"
+                              onClick={() => handleAnalyzeImage(index)}
+                              disabled={analyzingFileIndex === index}
+                              className="flex items-center gap-1 text-blue-600 hover:text-blue-700 px-2 py-1 text-xs rounded border border-blue-300 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Analyze image with AI to auto-fill form"
+                            >
+                              {analyzingFileIndex === index ? (
+                                <>
+                                  <Loader size={12} className="animate-spin" />
+                                  <span>Analyzing...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Scan size={12} />
+                                  <span>AI Analyze</span>
+                                </>
+                              )}
+                            </button>
+                          )}
                           <button
                             type="button"
                             onClick={() => removeAttachment(index)}
                             className="text-red-500 hover:text-red-700 p-1"
+                            title="Remove file"
                           >
                             <Trash2 size={16} />
                           </button>
@@ -523,6 +604,7 @@ Format as a concise paragraph (3-4 sentences). Respond with ONLY the suggestions
                     ))}
                   </div>
                 )}
+                {errors.attachments && <FieldError message={errors.attachments} />}
               </div>
 
               <div className="flex gap-2 pt-2">
