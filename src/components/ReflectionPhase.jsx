@@ -160,13 +160,24 @@ Create a thoughtful reflection (3-4 sentences) that covers:
 
 Respond with ONLY the reflection text, no labels or explanations.`;
 
-      const response = await fetch('http://localhost:3001/api/chat', {
+      // Determine API endpoint based on environment
+      let apiUrl;
+      if (window.location.hostname === 'localhost') {
+        apiUrl = 'http://localhost:3001/api/chat';
+      } else if (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebase')) {
+        apiUrl = 'https://us-central1-msco-cpd-tracker.cloudfunctions.net/chat';
+      } else {
+        throw new Error('Unable to determine API endpoint');
+      }
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           message: prompt
+          // Uses default Haiku model for cost savings (simple text generation)
         })
       });
 
@@ -207,13 +218,24 @@ Suggest 2-3 specific future learning activities or areas to explore that:
 
 Format as a concise paragraph (3-4 sentences). Respond with ONLY the suggestions text, no labels.`;
 
-      const response = await fetch('http://localhost:3001/api/chat', {
+      // Determine API endpoint based on environment
+      let apiUrl;
+      if (window.location.hostname === 'localhost') {
+        apiUrl = 'http://localhost:3001/api/chat';
+      } else if (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebase')) {
+        apiUrl = 'https://us-central1-msco-cpd-tracker.cloudfunctions.net/chat';
+      } else {
+        throw new Error('Unable to determine API endpoint');
+      }
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           message: prompt
+          // Uses default Haiku model for cost savings (simple text generation)
         })
       });
 
