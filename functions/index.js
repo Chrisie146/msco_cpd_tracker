@@ -5,7 +5,7 @@ const Anthropic = require('@anthropic-ai/sdk');
 const corsHandler = cors({ origin: true });
 
 const client = new Anthropic({
-  apiKey: process.env.VITE_CLAUDE_API_KEY,
+  apiKey: functions.config().claude ? functions.config().claude.key : process.env.VITE_CLAUDE_API_KEY,
 });
 
 // Health check endpoint
