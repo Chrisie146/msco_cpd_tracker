@@ -45,7 +45,7 @@ exports.analyzeDocument = functions.https.onRequest((req, res) => {
       console.log(`Processing file: ${fileName}, mime type: ${finalMimeType}, base64 length: ${base64Data.length}`);
 
       const message = await client.messages.create({
-        model: 'claude-3-sonnet-20240229',
+        model: 'claude-3-5-sonnet-latest',
         max_tokens: 1024,
         messages: [
           {
@@ -140,7 +140,7 @@ Please provide:
 Format the response with clear sections.`;
 
       const message = await client.messages.create({
-        model: 'claude-3-sonnet-20240229',
+        model: 'claude-3-5-sonnet-latest',
         max_tokens: 1024,
         messages: [
           {
