@@ -290,6 +290,11 @@ Format as a concise paragraph (3-4 sentences). Respond with ONLY the suggestions
       }
 
       const data = await response.json();
+      
+      if (!data.response || typeof data.response !== 'string') {
+        throw new Error('Invalid AI response format');
+      }
+      
       setReflectionData({ 
         ...reflectionData, 
         futureLearning: data.response.trim()

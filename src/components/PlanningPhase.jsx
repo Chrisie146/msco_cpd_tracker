@@ -103,6 +103,11 @@ Respond with ONLY a JSON array of competency names, no explanation. Example: ["A
       }
 
       const data = await response.json();
+      
+      if (!data.response || typeof data.response !== 'string') {
+        throw new Error('Invalid AI response format');
+      }
+      
       const suggestedCompetencies = JSON.parse(data.response);
       
       // Update competencyId with suggested competencies
@@ -169,6 +174,10 @@ Respond with ONLY the enhanced text, no explanations or labels.`;
       }
 
       const data = await response.json();
+      
+      if (!data.response || typeof data.response !== 'string') {
+        throw new Error('Invalid AI response format');
+      }
       
       // Update needPrompt with enhanced text
       setFormData({ 
@@ -240,6 +249,11 @@ Respond with ONLY a JSON array of competency names, no explanation. Example: ["A
       }
 
       const data = await response.json();
+      
+      if (!data.response || typeof data.response !== 'string') {
+        throw new Error('Invalid AI response format');
+      }
+      
       const suggestedCompetencies = JSON.parse(data.response);
       
       // Update selected competencies
@@ -306,6 +320,11 @@ Respond with ONLY the enhanced goal statement, no explanations or labels.`;
       }
 
       const data = await response.json();
+      
+      if (!data.response || typeof data.response !== 'string') {
+        throw new Error('Invalid AI response format');
+      }
+      
       handleCareerDataChange('shortTermGoals', data.response.trim());
 
     } catch (error) {
@@ -369,6 +388,11 @@ Respond with ONLY the enhanced goal statement, no explanations or labels.`;
       }
 
       const data = await response.json();
+      
+      if (!data.response || typeof data.response !== 'string') {
+        throw new Error('Invalid AI response format');
+      }
+      
       handleCareerDataChange('longTermGoals', data.response.trim());
 
     } catch (error) {
