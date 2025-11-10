@@ -54,6 +54,8 @@ const PlanningPhase = ({ careerData, setCareerData, learningNeeds, setLearningNe
   const [showCompetencyPicker, setShowCompetencyPicker] = useState(false);
   const [aiEnhancingPrompt, setAiEnhancingPrompt] = useState(false);
   const [aiSuggestingRoleCompetencies, setAiSuggestingRoleCompetencies] = useState(false);
+  const [aiEnhancingShortTermGoals, setAiEnhancingShortTermGoals] = useState(false);
+  const [aiEnhancingLongTermGoals, setAiEnhancingLongTermGoals] = useState(false);
 
   const handleCareerDataChange = (field, value) => {
     setCareerData({ ...careerData, [field]: value });
@@ -246,6 +248,129 @@ Respond with ONLY a JSON array of competency names, no explanation. Example: ["A
       setErrors({ ...errors, competenciesExpected: 'AI suggestion failed. Please select competencies manually or check AI configuration.' });
     } finally {
       setAiSuggestingRoleCompetencies(false);
+    }
+  };
+
+  const handleAIEnhanceShortTermGoals = async () => {
+    if (!careerData.shortTermGoals || !careerData.shortTermGoals.trim()) {
+      setErrors({ ...errors, shortTermGoals: 'Please enter your short-term goals first' });
+      return;
+    }
+
+    setAiEnhancingShortTermGoals(true);
+    setErrors({});
+
+    try {
+      const prompt = `You are a SAICA career development advisor. A professional has provided their short-term goals (next 12 months). Please enhance and refine this goal statement to make it:
+1. More specific and measurable
+2. Aligned with professional development best practices
+3. Clear and action-oriented
+4. Professional in tone
+5. Keep it concise (2-4 sentences)
+
+Current Role: ${careerData.currentPosition || 'Not specified'}
+Career Path: ${careerData.careerPath || 'Not specified'}
+Years in Role: ${careerData.yearsInRole || 'Not specified'}
+
+Current Short-Term Goals:
+"${careerData.shortTermGoals}"
+
+Respond with ONLY the enhanced goal statement, no explanations or labels.`;
+
+      // Determine API endpoint based on environment
+      let apiUrl;
+      if (window.location.hostname === 'localhost') {
+        apiUrl = 'http://localhost:3001/api/chat';
+      } else if (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebase')) {
+        apiUrl = 'https://us-central1-msco-cpd-tracker.cloudfunctions.net/chat';
+      } else {
+        throw new Error('Unable to determine API endpoint');
+      }
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: prompt
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('AI enhancement failed');
+      }
+
+      const data = await response.json();
+      handleCareerDataChange('shortTermGoals', data.response.trim());
+
+    } catch (error) {
+      console.error('AI short-term goals enhancement error:', error);
+      setErrors({ ...errors, shortTermGoals: 'AI enhancement failed. Please try again or edit manually.' });
+    } finally {
+      setAiEnhancingShortTermGoals(false);
+    }
+  };
+
+  const handleAIEnhanceLongTermGoals = async () => {
+    if (!careerData.longTermGoals || !careerData.longTermGoals.trim()) {
+      setErrors({ ...errors, longTermGoals: 'Please enter your long-term goals first' });
+      return;
+    }
+
+    setAiEnhancingLongTermGoals(true);
+    setErrors({});
+
+    try {
+      const prompt = `You are a SAICA career development advisor. A professional has provided their medium to long-term goals (beyond 12 months). Please enhance and refine this goal statement to make it:
+1. More strategic and visionary
+2. Aligned with career progression pathways
+3. Clear and aspirational yet achievable
+4. Professional in tone
+5. Keep it concise (2-4 sentences)
+
+Current Role: ${careerData.currentPosition || 'Not specified'}
+Career Path: ${careerData.careerPath || 'Not specified'}
+Years in Role: ${careerData.yearsInRole || 'Not specified'}
+Short-Term Goals: ${careerData.shortTermGoals || 'Not specified'}
+
+Current Long-Term Goals:
+"${careerData.longTermGoals}"
+
+Respond with ONLY the enhanced goal statement, no explanations or labels.`;
+
+      // Determine API endpoint based on environment
+      let apiUrl;
+      if (window.location.hostname === 'localhost') {
+        apiUrl = 'http://localhost:3001/api/chat';
+      } else if (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebase')) {
+        apiUrl = 'https://us-central1-msco-cpd-tracker.cloudfunctions.net/chat';
+      } else {
+        throw new Error('Unable to determine API endpoint');
+      }
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: prompt
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('AI enhancement failed');
+      }
+
+      const data = await response.json();
+      handleCareerDataChange('longTermGoals', data.response.trim());
+
+    } catch (error) {
+      console.error('AI long-term goals enhancement error:', error);
+      setErrors({ ...errors, longTermGoals: 'AI enhancement failed. Please try again or edit manually.' });
+    } finally {
+      setAiEnhancingLongTermGoals(false);
     }
   };
 
@@ -464,9 +589,24 @@ Respond with ONLY a JSON array of competency names, no explanation. Example: ["A
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Short Term Goals (Next 12 months)
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-slate-700">
+                    Short Term Goals (Next 12 months)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleAIEnhanceShortTermGoals}
+                    disabled={aiEnhancingShortTermGoals || !careerData.shortTermGoals}
+                    className="flex items-center gap-2 px-3 py-1 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-slate-400 disabled:cursor-not-allowed"
+                  >
+                    {aiEnhancingShortTermGoals ? (
+                      <Loader size={14} className="animate-spin" />
+                    ) : (
+                      <Sparkles size={14} />
+                    )}
+                    AI Enhance
+                  </button>
+                </div>
                 <textarea
                   rows="3"
                   value={careerData.shortTermGoals}
@@ -474,12 +614,28 @@ Respond with ONLY a JSON array of competency names, no explanation. Example: ["A
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Where do you see yourself in the next 12 months?"
                 />
+                {errors.shortTermGoals && <FieldError message={errors.shortTermGoals} />}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Medium to Long Term Goals (Beyond 12 months)
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-slate-700">
+                    Medium to Long Term Goals (Beyond 12 months)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleAIEnhanceLongTermGoals}
+                    disabled={aiEnhancingLongTermGoals || !careerData.longTermGoals}
+                    className="flex items-center gap-2 px-3 py-1 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-slate-400 disabled:cursor-not-allowed"
+                  >
+                    {aiEnhancingLongTermGoals ? (
+                      <Loader size={14} className="animate-spin" />
+                    ) : (
+                      <Sparkles size={14} />
+                    )}
+                    AI Enhance
+                  </button>
+                </div>
                 <textarea
                   rows="3"
                   value={careerData.longTermGoals}
@@ -487,6 +643,7 @@ Respond with ONLY a JSON array of competency names, no explanation. Example: ["A
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="What role do you see yourself in beyond 12 months?"
                 />
+                {errors.longTermGoals && <FieldError message={errors.longTermGoals} />}
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
